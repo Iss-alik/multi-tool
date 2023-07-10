@@ -36,15 +36,15 @@ class Window(Tk, Singleton):
         self.check =Checkbutton(self, text = 'sign', variable=self.sign)
         self.check.place(x= 50, y=140)
 
-        #Format work section
-        self.label = Label(text="Format")
+        #Strip work section
+        self.label = Label(text="Strip")
         self.label.place(x=250, y=100)  
 
-        self.format = BooleanVar(value=0)
-        self.radio = Radiobutton(text = 'new', variable=self.format, value=0)
+        self.strip= BooleanVar(value=1)
+        self.radio = Radiobutton(text = 'new', variable=self.strip, value=1)
         self.radio.place(x= 250, y=120)
 
-        self.radio= Radiobutton(text = 'old', variable=self.format, value=1)
+        self.radio= Radiobutton(text = 'old', variable=self.strip, value=0)
         self.radio.place(x= 250, y=140)
 
         #Operation section
@@ -62,12 +62,15 @@ class Window(Tk, Singleton):
         self.radio= Radiobutton(text = 'Square', variable=self.operation, value=2)
         self.radio.place(x= 50, y=220)
 
-        self.radio= Radiobutton(text = 'Nothing', variable=self.operation, value=3)
+        self.radio= Radiobutton(text = 'acomics', variable=self.operation, value=3)
         self.radio.place(x= 50, y=240)
+
+        self.radio= Radiobutton(text = 'Nothing', variable=self.operation, value=4)
+        self.radio.place(x= 50, y=260)
 
         #button to start 
         self.button = Button(self, text="Go", command=self.go_Multi)
-        self.button.place(x= 50, y=280)
+        self.button.place(x= 50, y=300)
 
     def browse(self):
         radio = self.source.get()
@@ -81,7 +84,7 @@ class Window(Tk, Singleton):
             self.path = cur_file
 
     def go_Multi(self):
-        go = Start(path=self.path, source=self.source.get(), format = self.format, 
+        go = Start(path=self.path, source=self.source.get(), strip = self.strip.get(), 
         contrast= self.contrast.get(), sign= self.sign.get(), operation=self.operation.get())
         go.startMutli()
 
