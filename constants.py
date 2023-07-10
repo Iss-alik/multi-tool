@@ -1,4 +1,3 @@
-
 #minimal width to define for new strip (square)
 MIN_SQ_W = 500
 
@@ -15,3 +14,6 @@ GO_Y = 30
 
 W_GO_X = 80
 W_GO_Y = 250
+
+SIGN_OLD_H = 15
+SIGN_OLD_S = 6

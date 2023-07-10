@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import filedialog as fd
 from creational.singleton import Singleton
-from structural.facade import Start
+from structural.facade import *
 
 class Window(Tk, Singleton):
     def __init__(self):
@@ -17,8 +17,8 @@ class Window(Tk, Singleton):
         self.radio.place(x= 100, y=20)
 
         #Path section
-        self.entery = Entry(width=50)
-        self.entery.place(x= 50, y=60)
+        self.path = Entry(width=50)
+        self.path.place(x= 50, y=60)
 
         self.button = Button(self, text="Browse", command=self.browse)
         self.button.place(x= 350, y=60)
@@ -68,6 +68,14 @@ class Window(Tk, Singleton):
         self.radio= Radiobutton(text = 'Nothing', variable=self.operation, value=4)
         self.radio.place(x= 50, y=260)
 
+        #Data section
+        self.date = Entry(width=15)
+        self.date.insert(0,"YYYY-MM-DD")
+        self.date.place(x= 250, y=200)
+
+        self.label = Label(text="Date")
+        self.label.place(x=250, y=170)  
+
         #button to start 
         self.button = Button(self, text="Go", command=self.go_Multi)
         self.button.place(x= 50, y=300)
@@ -77,15 +85,17 @@ class Window(Tk, Singleton):
 
         if(radio == 0):
             cur_direktory = fd.askdirectory()
-            self.path = cur_direktory
+            self.path.delete(first=0, last=END)
+            self.path.insert(0,cur_direktory)
 
         elif(radio == 1):
             cur_file = fd.askopenfilename()
-            self.path = cur_file
+            self.path.delete(first=0, last=END)
+            self.path.insert(0,cur_file)
 
     def go_Multi(self):
-        go = Start(path=self.path, source=self.source.get(), strip = self.strip.get(), 
-        contrast= self.contrast.get(), sign= self.sign.get(), operation=self.operation.get())
+        go = Start(path=self.path.get(), source=self.source.get(), strip = self.strip.get(), 
+        contrast= self.contrast.get(), sign= self.sign.get(), operation=self.operation.get(), date = self.date.get())
         go.startMutli()
 
     
