@@ -11,6 +11,6 @@ In the current moment program has 6 functions:
 	<p>
 	4) Sign, add a sign of the command to a strip
 	<p>
-	3) Date, put dates from the initial date 
+	5) Date, put dates from the initial date 
 	<p>
-	4) Acomics, resize new strips to Acomics standards
+	6) Acomics, resize new strips to Acomics standards
