@@ -266,8 +266,8 @@ class Operation:
             #Молодец это уже другое дело 
             signed = Image(width = w, height= h, background="white")
             
-            signed.composite(image=img, left=0,top = y)  
-            signed.composite(image=sign, left=x,top = y + sign_height)
+            signed.composite(image=img, left=0,top = constants.SIGN_SPACE + sign_height - y)  
+            signed.composite(image=sign, left=x,top = constants.SIGN_SPACE)
 
         
         else:
