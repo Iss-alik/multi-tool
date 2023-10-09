@@ -1,7 +1,6 @@
 import os
 from wand.image import Image
 from structural.decorator import *
-from structural.adapter import *
 import constants
 import datetime
 
@@ -106,9 +105,43 @@ class Operation:
         else:
             self.img_save(to_save=self.edit_img)
     
+     #define with and height of strip
+    
+    @staticmethod
+    def w_and_h(check, x, y, weekend = False):
+        xi = x
+        yi = y 
+
+
+        x = check.width-2 #-2 что бы х была меньше ширины
+        while(check[x,y +10].string<'srgb(250,250,250)'):
+            x-=2
+
+        x -= xi 
+
+        if(not weekend):
+            y = int((check.height - 3*yi)/3)
+            y += yi +10
+
+            while (check[xi+10,y].string < 'srgb(250,250,250)' ):
+                y-=2
+            y-=yi
+
+        
+        else:
+            y = check.height
+            xi+=20
+            while( (check[xi + 10 ,y-1].string <= 'srgb(250,250,250)' ) and y>0):
+                y-=3
+            y -= yi
+
+        x+=30 
+        y+=33
+        return x,y
+
     #function finding coordinets
     @staticmethod
-    def go_to(check,x,y,cmd='slice'): 
+    def upper_left(check,x,y): 
 
         while(check[x,y].string<'srgb(250,250,250)'):
             x+=1
@@ -116,17 +149,6 @@ class Operation:
         while( (check[x,y-1].string >= 'srgb(250,250,250)' or check[x+1,y-1].string >= 'srgb(250,250,250)' ) and y>0):
             y-=1
 
-        if(cmd == 'slice'):
-            x-=15
-            y-=18
-        elif(cmd =='sign_new'):
-            y-=15
-        elif(cmd == 'square'):
-            y=0
-            if(x>=5):
-                x-=5
-            else:
-                x=0
         return x,y 
     
     #function croping picture to 3 strips 
@@ -136,11 +158,18 @@ class Operation:
         x=80
         y=200
 
+        x,y = self.upper_left(check=self.inverted,x=x,y=y)
+        w,h = self.w_and_h(check=self.inverted,x=x, y=y)
+
         for i in range(3):
-            x,y = self.go_to(check=self.inverted,x=x,y=y)
-            strips[i].crop(x,y,width=1858, height=405)
+            x,y = self.upper_left(check=self.inverted,x=x,y=y)
+
+            x-=15 #поправка на ошибку 
+            y-=20
+
+            strips[i].crop(x,y,width=w, height=h)
             if(i==0):
-                 y=680
+                y=680
             elif(i==1):
                y=1120
             x=0
@@ -152,8 +181,14 @@ class Operation:
     def w_slice(self):
         x=constants.W_GO_X
         y=constants.W_GO_Y
-        x,y = self.go_to(check=self.inverted,x=x,y=y)
-        self.edit_img.crop(x,y,width=1860, height=1280)
+
+        x,y = self.upper_left(check=self.inverted,x=x,y=y)
+        w,h = self.w_and_h(check= self.inverted, x =x, y=y, weekend= True)
+
+        x-=15 #поправка на ошибку
+        y-=20
+
+        self.edit_img.crop(x,y,width=w, height=h)
 
         self.img_save(to_save = self.edit_img)
    
@@ -165,14 +200,27 @@ class Operation:
         x=constants.GO_X
         y=constants.GO_Y
 
-        x,y = self.go_to(check=self.inverted, x= x, y=y,cmd = 'square')
+        x,y = self.upper_left(check=self.inverted, x= x, y=y)
+
+        y=0
+        if(x>=5):
+            x-=5
+        else:
+            x=0
 
         self.clone_1.crop(x,y, width = self.w, height = self.h)
 
         x = self.w
         y = constants.GO_Y
 
-        x,y = self.go_to(check=self.inverted, x= x, y=y, cmd = 'square')
+        x,y = self.upper_left(check=self.inverted, x= x, y=y)
+
+        y=0
+        if(x>=5):
+            x-=5
+        else:
+            x=0
+
         self.clone_2.crop(x,y, width = self.w, height = self.h)
         
         w1 = self.clone_1.width
@@ -182,7 +230,7 @@ class Operation:
         self.h_res = self.clone_1.height + self.clone_2.height
 
         self.cntrl_point = self.h
-        if(self.w < constants.MIN_SQ_W):
+        if(not self.strip):
             self.cntrl_point -= 15
             self.h_res -=15
         
@@ -196,8 +244,10 @@ class Operation:
     def add_sign(self,img="none"):
         if(self.strip): #we have two version of sign old and new
             sign = Image(filename='sign.png')
+            sign_height = constants.SIGN_NEW_H
         else:
             sign = Image(filename='sign_old.png') 
+            sign_height = constants.SIGN_OLD_H
 
         self.clone_lv = img.clone()
         self.level = Level(self.clone_lv)
@@ -206,23 +256,24 @@ class Operation:
         x = constants.GO_X
         y = constants.GO_Y
 
-        if(self.strip):
-            x,y=self.go_to(check=self.inverted_sign,x=x,y=y,cmd ='sign_new')
 
-        else:
-            x,y=self.go_to(check=self.inverted_sign,x=x,y=y,cmd ='sign_old')
-        
-        if(self.strip):
-            img.composite(sign,x,y)
-            signed = img 
-        else:
+        x,y=self.upper_left(check=self.inverted_sign,x=x,y=y)
+        if(y < sign_height):
             w = img.width
-            h = 200
+            h = img.height
+            h += sign_height + constants.SIGN_SPACE
 
+            #Молодец это уже другое дело 
             signed = Image(width = w, height= h, background="white")
             
-            signed.composite(image=img, left=0,top = constants.SIGN_OLD_S + constants.SIGN_OLD_H - y)  
-            signed.composite(image=sign, left=x,top = constants.SIGN_OLD_S)
+            signed.composite(image=img, left=0,top = y)  
+            signed.composite(image=sign, left=x,top = y + sign_height)
+
+        
+        else:
+            y -= sign_height
+            img.composite(sign,x,y)
+            signed = img 
         
         return (signed)
 
@@ -271,4 +322,3 @@ class Operation:
         if(date<10):
             date = "0" + str(date)
         return str(date)
-#улучшить дату
